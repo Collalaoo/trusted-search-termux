@@ -98,7 +98,22 @@ log "SearXNG source ready (tested commit: b5bb27f)."
 # =============================================================================
 header "Step 4: Creating Python virtual environment"
 
-"$PYTHON_BIN" -m venv "${SEARXNG_VENV}" || error "Failed to create virtual environment!"
+# Some distro Pythons (notably termux-pacman python 3.14) ship `ensurepip`
+# without the bundled pip wheel, so `venv` fails.  In that case patch in the
+# missing wheel from PyPI (see CPython zoneinfo/ensurepip docs) and retry.
+"$PYTHON_BIN" -m venv "${SEARXNG_VENV}" || {
+    warn "Initial venv creation failed; repairing ensurepip bundled wheel..."
+    EP="$("$PYTHON_BIN" -c 'import ensurepip, os; print(os.path.join(os.path.dirname(ensurepip.__file__), "_bundled"))')"
+    mkdir -p "$EP"
+    PIP_VERSION=$("$PYTHON_BIN" -c 'import ensurepip; print(ensurepip._PIP_VERSION)' 2>/dev/null || true)
+    [ -n "$PIP_VERSION" ] || PIP_VERSION="26.1.2"
+    P_JSON=$(curl -fsSL "https://pypi.org/pypi/pip/${PIP_VERSION}/json") \
+        || error "ensurepip repair failed: cannot query PyPI"
+    WHL_URL=$("$PYTHON_BIN" -c 'import sys, json; u = [x["url"] for x in json.load(sys.stdin)["urls"] if x["packagetype"] == "bdist_wheel"]; print(u[0])' <<< "$P_JSON")
+    curl -fSL -o "$EP/$(basename "$WHL_URL")" "$WHL_URL" || error "ensurepip repair failed: wheel download"
+    warn "Retrying venv creation..."
+    "$PYTHON_BIN" -m venv "${SEARXNG_VENV}" || error "Failed to create virtual environment!"
+}
 source "${SEARXNG_VENV}/bin/activate"
 log "Virtual environment activated."
 
@@ -107,7 +122,7 @@ log "Virtual environment activated."
 # =============================================================================
 header "Step 5: Installing Python build tools"
 
-pip install --upgrade pip setuptools wheel pyyaml pybind11 msgspec typing_extensions \
+pip install --upgrade pip setuptools wheel pyyaml pybind11 msgspec typing_extensions tzdata \
     || error "pip install (build tools) failed!"
 log "Build tools installed."
 
@@ -149,6 +164,9 @@ mkdir -p "${SEARXNG_CONF}"
 cp "${SEARXNG_SRC}/searx/settings.yml" "${SEARXNG_CONF}/settings.yml" \
     || error "Failed to copy settings.yml!"
 
+# optional botdetection config; empty file silences the "missing limiter.toml" log
+: > "${SEARXNG_CONF}/limiter.toml"
+
 python - <<PYEOF
 import os, yaml, sys
 
@@ -157,8 +175,13 @@ try:
     with open(settings_path, "r") as f:
         settings = yaml.safe_load(f)
     settings["server"]["secret_key"] = os.urandom(24).hex()
+    # Tor-only onion engines can't work without a Tor proxy; mark them
+    # inactive so startup logs stay clean (re-enable if Tor is configured).
+    for engine in settings["engines"]:
+        if isinstance(engine, dict) and engine.get("name") in ("ahmia", "torch"):
+            engine["inactive"] = True
     with open(settings_path, "w") as f:
-        yaml.dump(settings, f, default_flow_style=False)
+        yaml.dump(settings, f, default_flow_style=False, allow_unicode=True)
     print("Secret key generated successfully!")
 except Exception as e:
     print(f"Error: {e}", file=sys.stderr)

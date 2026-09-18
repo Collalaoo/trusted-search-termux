@@ -70,6 +70,20 @@ cp -r ~/privau-searxng/out/* simple/
 - **Hook**: у `searx/webapp.py` (після `init()`) усі патчі застосовуються
   автоматично.
 
+## Відомі зауваження
+
+- **`tzdata`**: інсталятор ставить пакет `tzdata` у venv. Він потрібен, коли
+  системна база IANA-часових поясів недоступна для Python (`zoneinfo`) — інакше
+  движок `bilibili` не зареєструється (`ZoneInfoNotFoundError`).
+  (CPython docs про fallback на `tzdata`: https://docs.python.org/3/library/zoneinfo.html#data-sources)
+- **`ahmia` та `torch`** — движки Tor-мережі (категорія `onions`). Без
+  Tor-проксі они не працюють і логують помилку при старті; інсталятор позначає
+  їх `inactive` у згенерованому `~/.config/searxng/settings.yml`
+  (`is_engine_active` у `searx/engines/__init__.py`). Поверни `inactive: false`,
+  якщо налаштуєш Tor.
+- **`limiter.toml`**: опційний файл botdetection-конфігу; установка створює
+  порожній `~/.config/searxng/limiter.toml`, щоб не було попередження в логах.
+
 ## Налаштування для запуску з LAN
 
 ```yaml
