@@ -1,0 +1,15 @@
+# Приклад змін у живому конфігу SearXNG: ~/.config/searxng/settings.yml
+# Репозиторій: tused-search-termux
+
+server:
+  bind_address: 0.0.0.0   # 127.0.0.1 — лише локально; 0.0.0.0 — з усієї LAN
+  port: 8888
+  # secret_key: <згенерований install-скриптом, НЕ розголошувати>
+
+search:
+  autocomplete: google    # вмикає «багатий» автопрогноз (іконки/описи/тренди)
+  autocomplete_min: 0     # 0 — підказки з першої літери
+
+# Додаткові теми (вибір у Preferences → Theme):
+# paulgo, latte, frappe, macchiato, mocha, kagi, brave, moa, night,
+# dracula, gruvbox, gruvboxmat, everforest, nord, matcha, evergarden

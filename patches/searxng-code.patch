@@ -1,0 +1,78 @@
+diff --git a/searx/preferences.py b/searx/preferences.py
+index edc80f8bd..2e759f151 100644
+--- a/searx/preferences.py
++++ b/searx/preferences.py
+@@ -465,7 +465,7 @@ class Preferences:
+             'simple_style': EnumStringSetting(
+                 get_setting("ui.theme_args.simple_style"),
+                 locked="simple_style" in self.cfg.lock,
+-                choices=["", "auto", "light", "dark", "black"],
++                choices=["", "auto", "light", "dark", "black", "paulgo", "latte", "frappe", "macchiato", "mocha", "kagi", "brave", "moa", "night", "dracula", "gruvbox", "gruvboxmat", "everforest", "nord", "matcha", "evergarden"],
+             ),
+             'center_alignment': BooleanSetting(
+                 get_setting("ui.center_alignment"),
+diff --git a/searx/settings.yml b/searx/settings.yml
+index 36bc82c2b..5ce013d3a 100644
+--- a/searx/settings.yml
++++ b/searx/settings.yml
+@@ -43,9 +43,9 @@ search:
+   # Existing autocomplete backends: "360search", "baidu", "bing", "brave", "dbpedia", "duckduckgo", "google",
+   # "yandex", "privacywall", "mwmbl", "naver", "seznam", "sogou", "startpage", "swisscows", "quark", "qwant",
+   # "wikipedia" - leave blank to turn it off by default.
+-  autocomplete: ""
++  autocomplete: google
+   # minimun characters to type before autocompleter starts
+-  autocomplete_min: 4
++  autocomplete_min: 0
+   # backend for the favicon near URL in search results.
+   # Available resolvers: "allesedv", "duckduckgo", "google", "yandex" - leave blank to turn it off by default.
+   favicon_resolver: ""
+diff --git a/searx/settings_defaults.py b/searx/settings_defaults.py
+index c23ebd956..0edfc41ce 100644
+--- a/searx/settings_defaults.py
++++ b/searx/settings_defaults.py
+@@ -22,7 +22,7 @@ searx_dir = abspath(dirname(__file__))
+ logger = logging.getLogger('searx')
+ OUTPUT_FORMATS = ['html', 'csv', 'json', 'rss']
+ SXNG_LOCALE_TAGS = ['all', 'auto'] + list(l[0] for l in sxng_locales)
+-SIMPLE_STYLE = ('auto', 'light', 'dark', 'black')
++SIMPLE_STYLE = ('auto', 'light', 'dark', 'black', 'paulgo', 'latte', 'frappe', 'macchiato', 'mocha', 'kagi', 'brave', 'moa', 'night', 'dracula', 'gruvbox', 'gruvboxmat', 'everforest', 'nord', 'matcha', 'evergarden')
+ CATEGORIES_AS_TABS: dict[str, dict[str, t.Any]] = {
+     'general': {},
+     'images': {},
+diff --git a/searx/templates/simple/preferences/theme.html b/searx/templates/simple/preferences/theme.html
+index c17650808..781dba9ff 100644
+--- a/searx/templates/simple/preferences/theme.html
++++ b/searx/templates/simple/preferences/theme.html
+@@ -19,7 +19,7 @@
+   <legend id="pref_simple_style">{{- _('Theme style') -}}</legend>{{- '' -}}
+   <div class="value">{{- '' -}}
+     <select name="simple_style" aria-labelledby="pref_simple_style">
+-      {%- for name in ['auto', 'light', 'dark', 'black'] -%}
++      {%- for name in ['auto', 'light', 'dark', 'black', 'paulgo', 'latte', 'frappe', 'macchiato', 'mocha', 'kagi', 'brave', 'moa', 'night', 'dracula', 'gruvbox', 'gruvboxmat', 'everforest', 'nord', 'matcha', 'evergarden'] -%}
+         <option value="{{ name }}"
+                 {%- if name == preferences.get_value('simple_style') %} selected="selected" {%- endif -%}>
+                 {{- _(name) | capitalize -}}
+diff --git a/searx/webapp.py b/searx/webapp.py
+index 85f57266a..565500718 100755
+--- a/searx/webapp.py
++++ b/searx/webapp.py
+@@ -1406,5 +1406,18 @@ application = app
+ 
+ init()
+ 
++# -----------------------------------------------------------------
++# PrivAU feature patches (themes, rich autocomplete icons, early timeout, authorised API)
++# -----------------------------------------------------------------
++from searx.search.supplemental_timeout import apply_supplemental_timeout
++from searx.search.google_autocomplete_icons import apply_google_autocomplete_icons
++
++apply_supplemental_timeout()
++if os.environ.get("AUTHORISED_API"):
++    from searx.auth import apply_authorised_api
++
++    apply_authorised_api(app)
++apply_google_autocomplete_icons(app)
++
+ if __name__ == "__main__":
+     run()
