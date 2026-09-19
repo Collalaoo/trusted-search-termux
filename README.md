@@ -1,11 +1,12 @@
-# Tused Search Termux
+# Trusted Search Termux
 
 Private SearXNG meta-instance on Android/Termux (termux-pacman, no root).
 Бандл скриптів і патчів, зібраних і перевірених на реальному пристрої:
 
 - інсталятор на базі `pacman` (термінальний termux-pacman bootstrap, без `pkg`);
 - готові патчі фіч із [privau/searxng](https://github.com/privau/searxng):
-  19 тем, «багатий» автопрогноз запиту, ранні таймаути, опційний Authorised API;
+  19 тем (стилі), «багатий» автопрогноз запиту, ранні таймаути, опційний
+  Authorised API, а також макет форка як окрема тема `privau`;
 - приклади налаштувань.
 
 ## Вміст
@@ -41,17 +42,23 @@ SEARXNG_SRC=~/searxng-src bash patches/apply-patches.sh
 Патч розрахований на коміт `8456831a0` (`git apply`). На іншому коміті
 `searxng/searxng` може не лягти — тоді внось правки вручну (див. нижче).
 
-## Теми (статичні збірки)
+## Теми: стандартна `simple` + окрема `privau`
 
-Патч коду додає імена тем у селектор, але самі CSS/JS-збірки тем
-беруться з форка (компільований `out/`). Щоб темний UI реально
-відображався, скопіюй статику форка в дерево SearXNG:
+Стандартна тема SearXNG `simple` лишається за замовчуванням. Збірки форка
+(компільований `out/`) оформлені як **окрема тема `privau`**, яку можна
+вибрати в `Preferences → Theme` (вибір зберігається в cookie браузера):
 
 ```bash
-cd ~/searxng-src/searx/static/themes
-cp -r simple simple.org                    # резервна копія
-cp -r ~/privau-searxng/out/* simple/
+cd ~/searxng-src/searx
+cp -r ~/privau-searxng/out/* static/themes/privau/
+cp -r templates/simple templates/privau/
 ```
+
+Між темами можна перемикатися на льоту: Vite-збірка форка резолвить чанки
+відносно свого скрипта (`import.meta.url`), тому `themes/privau/` працює
+незалежно від `simple`. У `searx/webapp.py` значення `theme_static_path`
+у клієнтських налаштуваннях тепер формується від поточної теми, а не
+жорстко `themes/simple`.
 
 ## Що в патчі
 

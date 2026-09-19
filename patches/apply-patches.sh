@@ -39,7 +39,11 @@ fi
 cat <<'MSG'
 
 Done. Recommended follow-up:
-  1. static for themes:  cp -r <privau-searxng>/out/* searx/static/themes/simple/
+  1. optional 'privau' theme (separate selectable theme, standard 'simple'
+     stays the default):
+       cp -r <privau-searxng>/out/*              searx/static/themes/privau/
+       cp -r searx/templates/simple              searx/templates/privau/
+     ('privau' then appears in Preferences -> Theme)
   2. settings: search.autocomplete = google, search.autocomplete_min = 0
      (in ~/.config/searxng/settings.yml, else default searx/settings.yml)
   3. restart:  bash ~/.shortcuts/stop-searxng.sh && bash ~/.shortcuts/start-searxng.sh
