@@ -19,6 +19,7 @@ Private SearXNG meta-instance on Android/Termux (termux-pacman, no root).
 | `patches/searxng-code.patch` | Патч коду SearXNG (теми, автопрогноз, hook webapp) |
 | `patches/source/` | Нові модулі: `supplemental_timeout.py`, `google_autocomplete_icons.py`, `auth.py` |
 | `patches/apply-patches.sh` | Застосування `patches/source/` + `searxng-code.patch` |
+| `patches/add-theme-styles.py` | Додає решта 17 стилів у стандартну тему `simple` (з CSS теми `privau`) |
 | `settings/searxng-settings.example.yml` | Приклад змін у живому конфігу `~/.config/searxng/settings.yml` |
 
 ## Швидкий старт
@@ -60,6 +61,14 @@ cp -r templates/simple templates/privau/
 у клієнтських налаштуваннях тепер формується від поточної теми, а не
 жорстко `themes/simple`.
 
+Усі 20 стилів (`auto, light, dark, black, paulgo, latte, frappe, macchiato,
+mocha, kagi, brave, moa, night, dracula, gruvbox, gruvboxmat, everforest,
+evergarden, nord, matcha`) доступні для **обох** макетів. Стандартний
+`simple` у upstream містить лише `auto/dark/black` — решту блоків
+(`:root.theme-*` + стрілки `<select>`) дошиває скрипт
+`python3 patches/add-theme-styles.py` з компільованого CSS теми `privau`
+(спільна розмітка та спільні `--color-*` змінні, тому перенос чистий).
+
 ## Що в патчі
 
 - **Теми**: списки вибору розширено в `searx/preferences.py`,
@@ -90,6 +99,11 @@ cp -r templates/simple templates/privau/
   якщо налаштуєш Tor.
 - **`limiter.toml`**: опційний файл botdetection-конфігу; установка створює
   порожній `~/.config/searxng/limiter.toml`, щоб не було попередження в логах.
+- **`wikidata` engine**: edge query.wikidata.org повертає `403` для
+  User-Agent, що містить `SearXNG`. У `searx/engines/wikidata.py` заголовок
+  змінено на браузерний `gen_useragent()` — так само, як у поточному
+  searxng master (`searx/wikidata.py`, див. User_Manual#Query_limits). Без
+  цього движок не проходить INIT: `HTTP error 403 (suspended_time=180)`.
 
 ## Налаштування для запуску з LAN
 

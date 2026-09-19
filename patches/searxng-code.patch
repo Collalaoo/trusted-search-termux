@@ -1,3 +1,25 @@
+diff --git a/searx/engines/wikidata.py b/searx/engines/wikidata.py
+index ffb5dc136..141f7ba30 100644
+--- a/searx/engines/wikidata.py
++++ b/searx/engines/wikidata.py
+@@ -18,7 +18,7 @@ from babel.dates import format_datetime, format_date, format_time, get_datetime_
+ from searx.enginelib import EngineCache
+ from searx.data import WIKIDATA_UNITS
+ from searx.network import post, get
+-from searx.utils import searxng_useragent, get_string_replaces_function
++from searx.utils import gen_useragent, get_string_replaces_function
+ from searx.external_urls import get_external_url, get_earth_coordinates_url, area_to_osm_zoom
+ from searx.engines.wikipedia import (
+     fetch_wikimedia_traits,
+@@ -450,7 +450,7 @@ def get_headers() -> dict[str, str]:
+     # user agent: https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual#Query_limits
+     return {
+         "Accept": "application/sparql-results+json",
+-        "User-Agent": f"wikidata engine - {searxng_useragent()}",
++        "User-Agent": gen_useragent(),
+     }
+ 
+ 
 diff --git a/searx/preferences.py b/searx/preferences.py
 index edc80f8bd..2e759f151 100644
 --- a/searx/preferences.py

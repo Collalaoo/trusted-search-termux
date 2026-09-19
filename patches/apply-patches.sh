@@ -44,7 +44,10 @@ Done. Recommended follow-up:
        cp -r <privau-searxng>/out/*              searx/static/themes/privau/
        cp -r searx/templates/simple              searx/templates/privau/
      ('privau' then appears in Preferences -> Theme)
-  2. settings: search.autocomplete = google, search.autocomplete_min = 0
+  2. give the standard 'simple' theme ALL 20 color styles:
+       python3 "${REPO_DIR}/patches/add-theme-styles.py"
+     (needs the privau theme static from step 1; idempotent)
+  3. settings: search.autocomplete = google, search.autocomplete_min = 0
      (in ~/.config/searxng/settings.yml, else default searx/settings.yml)
-  3. restart:  bash ~/.shortcuts/stop-searxng.sh && bash ~/.shortcuts/start-searxng.sh
+  4. restart:  bash ~/.shortcuts/stop-searxng.sh && bash ~/.shortcuts/start-searxng.sh
 MSG
