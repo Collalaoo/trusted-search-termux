@@ -1,0 +1,29 @@
+{% extends "simple/base.html" %}
+
+{% block meta %}
+{% include "advanced/partials/styles/index.html" %}
+{% include "advanced/partials/scripts/advanced_search.html" %}
+{% include "advanced/partials/scripts/search_on_category_select.html" %}
+{% include "advanced/partials/scripts/simple_main_id.html" %}
+{% block scripts %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="index">
+    <div class="title">
+        <h1>SearXNG</h1>
+    </div>
+
+    {% include "simple/simple_search.html" %}
+
+    <div id="advanced_search">
+        {% include "simple/categories.html" %}
+
+        <div id="filters">
+            {% include "simple/filters/languages.html" %}
+            {% include "simple/filters/time_range.html" %}
+            {% include "simple/filters/safesearch.html" %}
+        </div>
+    </div>
+</div>
+{% endblock %}

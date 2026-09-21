@@ -1,0 +1,21 @@
+{% if preferences.get_value('search_on_category_select') %}
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    [...document.querySelectorAll('#categories_container > .category > input[type="checkbox"]')]
+      .forEach(input => {
+        input.addEventListener('change', () => {
+          input.checked = true;
+  
+          [...document.querySelectorAll(`#categories_container > .category > input[type="checkbox"]:not([name="${input.name}"])`)]
+            .forEach(siblingInput => {
+              siblingInput.checked = false;
+            });
+          
+          if (input.form.querySelector('#q')?.value) {
+            input.form.submit();
+          }
+        });
+      });
+  });
+</script>
+{% endif %}

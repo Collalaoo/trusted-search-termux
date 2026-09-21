@@ -1,0 +1,16 @@
+<fieldset>{{- '' -}}
+  <legend>{{ _('Advanced search') }}</legend>{{- '' -}}
+  <p class="value">{{- '' -}}
+    <input type="checkbox" {{- ' ' -}}
+           name="advanced_search" {{- ' ' -}}
+           aria-labelledby="pref_advanced_search" {{- ' ' -}}
+           class="checkbox-onoff" {{- ' ' -}}
+           {%- if preferences.get_value('advanced_search') -%}
+             checked
+           {%- endif -%}{{- ' ' -}}
+           >{{- '' -}}
+  </p>{{- '' -}}
+  <div class="description" id="pref_advanced_search">
+    {{- _('Show the advanced search (categories and filters) block on the start page') -}}
+  </div>{{- '' -}}
+</fieldset>{{- '' -}}

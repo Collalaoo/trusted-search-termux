@@ -72,9 +72,22 @@ index c17650808..781dba9ff 100644
      <select name="simple_style" aria-labelledby="pref_simple_style">
 -      {%- for name in ['auto', 'light', 'dark', 'black'] -%}
 +      {%- for name in ['auto', 'light', 'dark', 'black', 'paulgo', 'latte', 'frappe', 'macchiato', 'mocha', 'kagi', 'brave', 'moa', 'night', 'dracula', 'gruvbox', 'gruvboxmat', 'everforest', 'nord', 'matcha', 'evergarden'] -%}
-         <option value="{{ name }}"
-                 {%- if name == preferences.get_value('simple_style') %} selected="selected" {%- endif -%}>
-                 {{- _(name) | capitalize -}}
+        <option value="{{ name }}"
+                {%- if name == preferences.get_value('simple_style') %} selected="selected" {%- endif -%}>
+                {{- _(name) | capitalize -}}
+diff --git a/searx/templates/simple/base.html b/searx/templates/simple/base.html
+index 7b2cd6a66..f5a1025e2 100644
+--- a/searx/templates/simple/base.html
++++ b/searx/templates/simple/base.html
+@@ -29,7 +29,7 @@
+   <link rel="manifest" href="{{ url_for('manifest') }}" />
+ </head>
+ <body class="{{ endpoint }}_endpoint" >
+-  <main id="main_{{  self._TemplateReference__context.name|replace("simple/", "")|replace(".html", "") }}" class="{{body_class}}">
++  <main id="main_{{ self._TemplateReference__context.name.rsplit("/", 1)[-1]|replace(".html", "") }}" class="{{body_class}}">
+     {% if errors %}
+         <div class="dialog-error" role="alert">
+             <a href="#" class="close" aria-label="close" title="close">×</a>
 diff --git a/searx/webapp.py b/searx/webapp.py
 index 85f57266a..d2854de0f 100755
 --- a/searx/webapp.py

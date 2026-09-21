@@ -1,0 +1,17 @@
+{% if preferences.get_value('advanced_search') %}
+<script defer>
+  document.addEventListener("DOMContentLoaded", () => {
+    [...document.querySelectorAll('#advanced_search :where(input[type="checkbox"], select)')]
+      .forEach(input => {
+        input.setAttribute('form', 'search');
+  
+        [...document.querySelectorAll(`#search :where(input[name="${input.name}"], select[name="${input.name}"])`)]
+          .forEach(simpleInput => {
+            simpleInput.remove();
+          });
+      });
+  
+    document.querySelector('#advanced_search').style.display = 'block';
+  });
+</script>
+{% endif %}
