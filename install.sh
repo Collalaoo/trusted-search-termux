@@ -217,12 +217,14 @@ setup_venv() {
     log "creating virtual environment"
     run python3 -m venv "$SEARXNG_VENV"
   fi
-  log "upgrading pip"
-  run "$SEARXNG_VENV/bin/python" -m pip install --upgrade pip
+  log "upgrading pip / setuptools / wheel"
+  run "$SEARXNG_VENV/bin/python" -m pip install --upgrade pip setuptools wheel
   log "installing searxng dependencies (pinned)"
   run "$SEARXNG_VENV/bin/python" -m pip install -r "$SEARXNG_SRC/requirements.txt"
   log "installing searxng in editable mode"
-  run "$SEARXNG_VENV/bin/python" -m pip install -e "$SEARXNG_SRC"
+  # --no-build-isolation: searxng's setup.py imports `searx` (and msgspec) at
+  # build time; an isolated build env has neither.
+  run "$SEARXNG_VENV/bin/python" -m pip install --no-build-isolation -e "$SEARXNG_SRC"
 }
 
 # ---------------------------------------------------------------------------
@@ -241,13 +243,38 @@ setup_settings() {
 }
 
 # ---------------------------------------------------------------------------
-# 6. start / stop helpers (Termux-friendly, linux/systemd-friendly).
+# 6. AI Overview plugin (vendored, pip-installed into the venv).
+# ---------------------------------------------------------------------------
+setup_ai_overview() {
+  run mkdir -p "$SEARXNG_CONF"
+  log "installing AI Overview plugin into the venv"
+  run "$SEARXNG_VENV/bin/python" -m pip install --no-build-isolation "$SCRIPT_DIR/assets/ai-overview"
+  if [ -f "$SEARXNG_CONF/overview.yml" ] && [ "$FORCE" -eq 0 ]; then
+    info "overview.yml already exists — keeping it"
+  else
+    log "shipping $SEARXNG_CONF/overview.yml"
+    run cp -a "$SCRIPT_DIR/assets/overview.yml.default" "$SEARXNG_CONF/overview.yml"
+  fi
+  if [ -f "$SEARXNG_CONF/secrets.env" ] && [ "$FORCE" -eq 0 ]; then
+    info "secrets.env already exists — keeping it"
+  else
+    log "shipping $SEARXNG_CONF/secrets.env (put your provider key inside it)"
+    run cp -a "$SCRIPT_DIR/assets/secrets.env.default" "$SEARXNG_CONF/secrets.env"
+  fi
+}
+
+# ---------------------------------------------------------------------------
+# 7. start / stop helpers (Termux-friendly, linux/systemd-friendly).
 # ---------------------------------------------------------------------------
 write_start_script() {
   run bash -c "cat > '$START_SCRIPT' <<'EOF'
 #!/usr/bin/env bash
 # Trusted Search — start custom SearXNG on :8888
 export SEARXNG_SETTINGS_PATH='$SETTINGS_PATH'
+export AI_OVERVIEW_CONFIG='$SEARXNG_CONF/overview.yml'
+if [ -f '$SEARXNG_CONF/secrets.env' ]; then
+  source '$SEARXNG_CONF/secrets.env'
+fi
 BIN='$SEARXNG_VENV/bin/python'
 SRC='$SEARXNG_SRC'
 LOG='$LOG_DIR'
@@ -339,14 +366,16 @@ info "target dirs:"
 info "  searxng source  -> $SEARXNG_SRC"
 info "  searxng venv    -> $SEARXNG_VENV"
 info "  settings        -> $SETTINGS_PATH"
+info "  AI overview cfg -> $SEARXNG_CONF/overview.yml (key: $SEARXNG_CONF/secrets.env)"
 echo
 
 log "I/ install OS packages ($PLATFORM)";       [ "$SKIP_OS" -eq 0 ] && install_os_pkgs || info "skipping OS packages (--skip-deps)"
 log "II/ fetch & patch searxng source";         setup_searxng_src
 log "III/ create python venv";                   setup_venv
 log "IV/ write user settings";                   setup_settings
-log "V/ install start/stop helpers";             write_start_script
-log "VI/ register systemd (proxmox only)";       setup_systemd
-log "VII/ start services";                        start_and_verify
+log "V/ install AI Overview plugin";            setup_ai_overview
+log "VI/ install start/stop helpers";           write_start_script
+log "VII/ register systemd (proxmox only)";      setup_systemd
+log "VIII/ start services";                      start_and_verify
 
 log "all done."

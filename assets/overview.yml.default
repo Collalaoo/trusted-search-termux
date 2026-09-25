@@ -1,0 +1,41 @@
+# AI Overview plugin: provider profiles.
+# This file is installed to $SEARXNG_CONF/overview.yml (usually
+# ~/.config/searxng/overview.yml). Do NOT put API keys here -- they are read
+# from env vars named in api_key_env (exported by secrets.env beside this file).
+#
+# Docs upstream: https://github.com/jacobabahn/ai-overview-searxng
+default_profile: gemini
+max_sources: 8
+evidence_bytes: 12000
+max_turns: 6
+token_ttl_seconds: 1800
+max_concurrent: 2
+
+profiles:
+  # Google Gemini (default). Key: https://aistudio.google.com/apikey
+  gemini:
+    backend: gemini
+    model: gemini-3.5-flash-lite
+    endpoint: https://generativelanguage.googleapis.com/v1beta
+    api_key_env: GEMINI_API_KEY
+    max_output_tokens: 3200
+    planning_max_output_tokens: 512
+    timeout_seconds: 420
+    read_timeout_seconds: 300
+
+  # NVIDIA Build (build.nvidia.com) alternative. Key: build.nvidia.com -> API key
+  nvidia:
+    backend: local
+    model: nvidia/nemotron-3.5-lightning-30b-a3b
+    endpoint: https://integrate.api.nvidia.com/v1/chat/completions
+    api_key_env: NVIDIA_BUILD_API_KEY
+    max_output_tokens: 3200
+    planning_max_output_tokens: 512
+    timeout_seconds: 420
+    read_timeout_seconds: 300
+
+  # Local Ollama, when you have a model installed:
+  #   ollama:
+  #     backend: ollama
+  #     model: <ollama list name>
+  #     endpoint: http://127.0.0.1:11434/api/chat

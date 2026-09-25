@@ -1,0 +1,66 @@
+<link rel="stylesheet" href="{{ url_for('ai_overview.static', filename='overview.css') }}">
+<section class="ai-overview" aria-label="AI Summary" data-expanded="false" data-loading="true" data-token="{{ token }}"
+         data-endpoint="{{ url_for('ai_overview.stream') }}"
+         data-models-endpoint="{{ url_for('ai_overview.models') }}"
+         data-select-endpoint="{{ url_for('ai_overview.select') }}"
+         data-profile="{{ profile }}" data-model="{{ model }}">
+  <header class="ai-overview-header">
+    <h2><span class="ai-sparkle" aria-hidden="true">✦</span>AI Summary</h2>
+    <div class="ai-header-actions">
+      <div class="ai-generation-action">
+        <button type="button" class="ai-stop" aria-label="Stop generating" title="Stop generating" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>
+        <button type="button" class="ai-copy" aria-label="Copy answer" title="Copy answer" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></svg></button>
+      </div>
+      <button type="button" class="ai-options-toggle" aria-label="Summary settings" aria-expanded="false" aria-controls="ai-summary-settings" title="Summary settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></svg></button>
+      <button type="button" class="ai-collapse" aria-label="Collapse overview" aria-expanded="true" title="Collapse overview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg></button>
+    </div>
+  </header>
+  <div class="ai-options" id="ai-summary-settings" role="region" aria-label="Summary settings" hidden>
+    <div class="ai-settings-heading">
+      <h3>Summary settings</h3>
+      <button type="button" class="ai-settings-close" aria-label="Close settings" title="Close settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </div>
+    {% if model_picker %}
+    <div class="ai-model-settings">
+      <div class="ai-model-label">
+        <label for="ai-summary-model">Model</label>
+        <button type="button" class="ai-refresh-models">Refresh list</button>
+      </div>
+      <select class="ai-model" id="ai-summary-model" aria-label="Overview model" aria-describedby="ai-model-help" disabled>
+        <option>{{ profile }} / {{ model }}</option>
+      </select>
+      <p class="ai-current-model">Current: {{ model }}</p>
+      <p id="ai-model-help" class="ai-model-help">Changes apply when you restart. Your model choice is remembered in this browser.</p>
+      <p class="ai-model-status" role="status" aria-live="polite"></p>
+    </div>
+    {% endif %}
+    <div class="ai-settings-footer">
+      <p class="ai-restart-help" id="ai-restart-help">Replaces this summary.</p>
+      <button type="button" class="ai-regenerate" aria-describedby="ai-restart-help">Regenerate overview</button>
+      {% if model_picker %}
+      <button type="button" class="ai-apply-model" aria-describedby="ai-restart-help" disabled hidden>Use model and restart</button>
+      {% endif %}
+      <p class="ai-settings-busy" role="status" hidden>Wait for the answer to finish, or stop generating to restart.</p>
+    </div>
+  </div>
+  <p class="ai-collapsed-preview" hidden></p>
+  <div class="ai-content">
+    <p class="ai-status" role="status" aria-live="polite">Reading search results…</p>
+    <div class="ai-turns" id="ai-summary-turns"></div>
+    <div class="ai-more-row" hidden><button type="button" class="ai-more" aria-expanded="false" aria-controls="ai-summary-turns"><span>Show full answer</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <span class="ai-copy-status ai-sr-only" role="status"></span>
+    <div class="ai-actions">
+      <button type="button" class="ai-cancel-wait" hidden>Cancel waiting</button>
+      <button type="button" class="ai-retry" hidden>Retry</button>
+    </div>
+    <form class="ai-follow-up" hidden>
+      <label><span class="ai-sr-only">Ask a follow-up</span>
+        <input name="question" type="text" maxlength="2000" required autocomplete="off"
+               placeholder="Ask a follow-up…">
+      </label>
+      <button type="submit" aria-label="Ask" title="Ask"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button>
+    </form>
+    <noscript>Enable JavaScript to generate an AI Summary.</noscript>
+  </div>
+</section>
+<script type="module" src="{{ url_for('ai_overview.static', filename='overview.js') }}"></script>

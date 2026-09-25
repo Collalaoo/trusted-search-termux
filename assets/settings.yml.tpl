@@ -2494,6 +2494,10 @@ outgoing:
   pool_maxsize: 20
   request_timeout: 3.0
   useragent_suffix: ''
+  networks:
+    ai_overview:
+      enable_http: true
+      retries: 0
 plugins:
   searx.plugins.ahmia_filter.SXNGPlugin:
     active: true
@@ -2516,6 +2520,8 @@ plugins:
   searx.plugins.tracker_url_remover.SXNGPlugin:
     active: true
   searx.plugins.unit_converter.SXNGPlugin:
+    active: true
+  ai_overview.plugin.SXNGPlugin:
     active: true
 preferences:
   lock: []

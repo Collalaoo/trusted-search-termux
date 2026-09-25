@@ -1,0 +1,13 @@
+# Real API keys / local secrets — never commit actual keys.
+# Template with placeholders is tracked as assets/secrets.env.default.
+secrets.env
+**/secrets.env
+secrets.env.*
+!secrets.env.default
+
+# Python
+__pycache__/
+*.pyc
+
+# Misc
+*.log
