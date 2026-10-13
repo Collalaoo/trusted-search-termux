@@ -50,6 +50,7 @@ DRY_RUN=0
 FORCE=0
 SKIP_OS=0
 TARGET=""
+SYSTEMD_REGISTERED=0
 
 log()  { printf '\033[1;32m[trusted-search]\033[0m %s\n' "$*"; }
 info() { printf '\033[1;36m[info]\033[0m %s\n' "$*"; }
@@ -61,6 +62,10 @@ run() {  # run <cmd...>  (honours --dry-run)
     return 0
   fi
   "$@"
+}
+
+maybe_root() {  # run <cmd...> elevating with sudo when not root
+  if [ "$(id -u)" -eq 0 ]; then "$@"; elif command -v sudo >/dev/null 2>&1; then sudo "$@"; else return 127; fi
 }
 
 for a in "$@"; do
@@ -303,7 +308,11 @@ EOF"
 setup_systemd() {
   if [ "$PLATFORM" != "proxmox" ]; then return 0; fi
   if ! command -v systemctl >/dev/null 2>&1; then return 0; fi
-  run bash -c "cat > '$SYSTEMD_UNIT' <<EOF
+  if [ "$(id -u)" -ne 0 ] && ! command -v sudo >/dev/null 2>&1; then
+    info "no root/sudo available — systemd unit skipped; use 'bash $START_SCRIPT' instead"
+    return 0
+  fi
+  if ! run maybe_root bash -c "cat > '$SYSTEMD_UNIT' <<EOF
 [Unit]
 Description=Trusted Search custom SearXNG
 After=network.target
@@ -316,9 +325,13 @@ ExecStop=$STOP_SCRIPT
 
 [Install]
 WantedBy=multi-user.target
-EOF"
-  run systemctl daemon-reload
-  run systemctl enable trusted-searxng.service
+EOF"; then
+    info "could not register systemd unit (need root/sudo) — use 'bash $START_SCRIPT' instead"
+    return 0
+  fi
+  run maybe_root systemctl daemon-reload
+  run maybe_root systemctl enable trusted-searxng.service
+  SYSTEMD_REGISTERED=1
 }
 
 # ---------------------------------------------------------------------------
@@ -329,8 +342,8 @@ start_and_verify() {
     info "dry-run finished, nothing was started"
     return 0
   fi
-  if [ "$PLATFORM" = "proxmox" ] && command -v systemctl >/dev/null 2>&1; then
-    run systemctl restart trusted-searxng.service
+  if [ "$PLATFORM" = "proxmox" ] && [ "$SYSTEMD_REGISTERED" -eq 1 ]; then
+    run maybe_root systemctl restart trusted-searxng.service || run bash "$START_SCRIPT"
   else
     run bash "$START_SCRIPT"
   fi
@@ -353,7 +366,7 @@ start_and_verify() {
   echo "   logs:      $LOG_DIR/searxng.log"
   echo "   restart:   bash $START_SCRIPT"
   echo "   stop:      bash $STOP_SCRIPT"
-  if [ "$PLATFORM" = "proxmox" ] && command -v systemctl >/dev/null 2>&1; then
+  if [ "$PLATFORM" = "proxmox" ] && [ "$SYSTEMD_REGISTERED" -eq 1 ]; then
     echo "   systemd:   systemctl {start,stop,restart} trusted-searxng"
   fi
   echo "------------------------------------------------------------"
